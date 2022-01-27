@@ -1,0 +1,59 @@
+name: 'Beget Deploy'
+description: 'deploy on beget'
+author: "drewsher"
+inputs:
+  SSH_PRIVATE_KEY:
+    description: "Private Key"
+    required: true
+  REMOTE_HOST:
+    description: "Remote host"
+    required: true
+  REMOTE_USER:
+    description: "Remote user"
+    required: true
+  TARGET:
+    description: "Target directory"
+    required: true
+  STARTUP_FILE:
+    description: "Startup file"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v1
+
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '16.x'
+
+    - name: Install npm dependencies
+      run: npm install
+      shell: bash
+
+    - name: Run build task
+      run: npm run build --if-present
+      shell: bash
+
+    - name: Prepare to Deploy
+      run: |
+        ln -s public_html public
+
+        export user_letter=$(s='${{ inputs.REMOTE_USER }}'; echo ${s:0:1})
+
+        echo "PassengerNodejs /home/$user_letter/${{ inputs.REMOTE_USER }}/.local/bin/node" > .htaccess
+        echo "PassengerAppRoot /home/$user_letter/${{ inputs.REMOTE_USER }}/${{ inputs.TARGET }}" >> .htaccess
+        echo 'PassengerAppType node' >> .htaccess
+        echo 'PassengerStartupFile ${{ inputs.STARTUP_FILE }}' >> .htaccess
+
+        mkdir tmp
+        touch tmp/restart.txt
+      shell: bash
+
+    - name: Deploy to Server
+      uses: easingthemes/ssh-deploy@main
+      env:
+        SSH_PRIVATE_KEY: ${{ inputs.SSH_PRIVATE_KEY }}
+        REMOTE_HOST: ${{ inputs.REMOTE_HOST }}
+        REMOTE_USER: ${{ inputs.REMOTE_USER }}
+        TARGET: ${{ inputs.TARGET }}
