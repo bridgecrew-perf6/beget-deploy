@@ -2,9 +2,9 @@
 
 Экшен для публикации на виртуальном хостинге beget.ru
 
-## Secret keys
+## Secrets
 
-- `SSH_PRIVATE_KEY` — публичный ключ
+- `SSH_PRIVATE_KEY` — приватный ключ
 - `REMOTE_HOST` — адрес сервера
 - `REMOTE_USER` — имя пользователя
 - `TARGET` — путь до папки сайта
